@@ -114,9 +114,11 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
             {
                 html();
                     head();
-                        headSection(this);
+                        metaTag(this);
                         link().rel("stylesheet").type("text/css").href("https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css").end();
-                        script().src("https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js").end();
+                        link().rel("stylesheet").type("text/css").href("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css").end();
+                        script().src("https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.bundle.min.js").end();
+                        script().raw("$(function enableAllTooltips() { $('[data-toggle=\"tooltip\"]').tooltip() })").end();
                         title().text("Profile report for channel " + ResultsStoreHelper.determineChannel()).end();
                     end();
                     body();
@@ -141,8 +143,12 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                         text(")");
                         a().target("_blank").href("https://github.com/gradle/gradle/commits/"+ commitId).small().classAttr("text-muted").text(commitId).end().end();
                     end();
-                    div().classAttr("col p-0").text("Difference").end();
-                    div().classAttr("col p-0").text("Confidence").end();
+                    div().classAttr("col p-0").text("Difference")
+                        .i().classAttr("fa fa-info-cicle").attr("data-toggle", "tooltip").title("The difference between two series of execution data (usually baseline vs current Gradle), positive numbers indicate current Gradle is slower, and vice versa.").end()
+                    .end();
+                    div().classAttr("col p-0").text("Confidence")
+                        .i().classAttr("fa fa-info-cicle").attr("data-toggle", "tooltip").title("The confidence with which these two data series are different. E.g. 90% means they're different with 90% confidence. Currently we fail the test if the confidence > 99%.").end()
+                    .end();
                 end();
             }
 
@@ -181,16 +187,16 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                             div().classAttr("col-7");
                                 big().text(scenario.getScenarioName()).end();
                                 if(scenario.isFromCache()) {
-                                    span().classAttr("badge badge-info").title("The test is not really executed - its results are fetched from build cache.").text("FROM-CACHE").end();
+                                    span().classAttr("badge badge-info").attr("data-toggle", "tooltip").title("The test is not really executed - its results are fetched from build cache.").text("FROM-CACHE").end();
                                 }
                                 if(scenario.isBuildFailed()) {
-                                    span().classAttr("badge badge-danger").title("The build failed and doesn't generate any execution data.").text("FAILED").end();
+                                    span().classAttr("badge badge-danger").attr("data-toggle", "tooltip").title("The build failed and doesn't generate any execution data.").text("FAILED").end();
                                 } else if(!scenario.isSuccessful()) {
-                                    span().classAttr("badge badge-danger").title("Regression confidence > 99% despite retries.").text("REGRESSED").end();
+                                    span().classAttr("badge badge-danger").attr("data-toggle", "tooltip").title("Regression confidence > 99% despite retries.").text("REGRESSED").end();
                                 } else if(scenario.isAboutToRegress()) {
-                                    span().classAttr("badge badge-warning").title("Regression confidence > 90%, we're going to fail soon.").text("NEARLY-FAILED").end();
+                                    span().classAttr("badge badge-warning").attr("data-toggle", "tooltip").title("Regression confidence > 90%, we're going to fail soon.").text("NEARLY-FAILED").end();
                                 } else if(scenario.isImproved()) {
-                                    span().classAttr("badge badge-success").title("Improvement confidence > 90%, rebaseline it to keep this improvement! :-)").text("IMPROVED").end();
+                                    span().classAttr("badge badge-success").attr("data-toggle", "tooltip").title("Improvement confidence > 90%, rebaseline it to keep this improvement! :-)").text("IMPROVED").end();
                                 }
                             end();
                             div().classAttr("col-2");
