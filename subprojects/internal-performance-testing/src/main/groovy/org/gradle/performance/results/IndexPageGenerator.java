@@ -145,10 +145,10 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                         a().target("_blank").href("https://github.com/gradle/gradle/commits/"+ commitId).small().classAttr("text-muted").text(commitId).end().end();
                     end();
                     div().classAttr("col p-0").text("Difference");
-                        i().classAttr("fa fa-info-cicle").attr("data-toggle", "tooltip").title("The difference between two series of execution data (usually baseline vs current Gradle), positive numbers indicate current Gradle is slower, and vice versa.").end()
+                        i().classAttr("fa fa-info-circle").attr("data-toggle", "tooltip").title("The difference between two series of execution data (usually baseline vs current Gradle), positive numbers indicate current Gradle is slower, and vice versa.").text(" ").end()
                     .end();
                     div().classAttr("col p-0").text("Confidence");
-                        i().classAttr("fa fa-info-cicle").attr("data-toggle", "tooltip").title("The confidence with which these two data series are different. E.g. 90% means they're different with 90% confidence. Currently we fail the test if the confidence > 99%.").end()
+                        i().classAttr("fa fa-info-circle").attr("data-toggle", "tooltip").title("The confidence with which these two data series are different. E.g. 90% means they're different with 90% confidence. Currently we fail the test if the confidence > 99%.").text(" ").end()
                     .end();
                 end();
             }
