@@ -65,8 +65,8 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
         Comparator<ScenarioBuildResultData> comparator = comparing(ScenarioBuildResultData::isBuildFailed).reversed()
             .thenComparing(ScenarioBuildResultData::isSuccessful)
             .thenComparing(comparing(ScenarioBuildResultData::isAboutToRegress).reversed())
-            .thenComparing(comparing(ScenarioBuildResultData::getRegressionSortKey).reversed())
-            .thenComparing(comparing(ScenarioBuildResultData::getRegressionPercentage).reversed())
+            .thenComparing(comparing(ScenarioBuildResultData::getDifferenceSortKey).reversed())
+            .thenComparing(comparing(ScenarioBuildResultData::getDifferencePercentage).reversed())
             .thenComparing(ScenarioBuildResultData::getScenarioName);
         return data.collect(() -> new TreeSet<>(comparator), TreeSet::add, TreeSet::addAll);
     }
@@ -144,11 +144,17 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                         text(")");
                         a().target("_blank").href("https://github.com/gradle/gradle/commits/"+ commitId).small().classAttr("text-muted").text(commitId).end().end();
                     end();
-                    div().classAttr("col p-0").text("Difference");
-                        i().classAttr("fa fa-info-circle").attr("data-toggle", "tooltip").title("The difference between two series of execution data (usually baseline vs current Gradle), positive numbers indicate current Gradle is slower, and vice versa.").text(" ").end()
+                    div().classAttr("col p-0")
+                        .attr("data-toggle", "tooltip")
+                        .title("The difference between two series of execution data (usually baseline vs current Gradle), positive numbers indicate current Gradle is slower, and vice versa.")
+                        .text("Difference");
+                            i().classAttr("fa fa-info-circle").text(" ").end()
                     .end();
-                    div().classAttr("col p-0").text("Confidence");
-                        i().classAttr("fa fa-info-circle").attr("data-toggle", "tooltip").title("The confidence with which these two data series are different. E.g. 90% means they're different with 90% confidence. Currently we fail the test if the confidence > 99%.").text(" ").end()
+                    div().classAttr("col p-0")
+                        .attr("data-toggle", "tooltip")
+                        .title("The confidence with which these two data series are different. E.g. 90% means they're different with 90% confidence. Currently we fail the test if the confidence > 99%.")
+                        .text("Confidence");
+                            i().classAttr("fa fa-info-circle").text(" ").end()
                     .end();
                 end();
             }
@@ -205,14 +211,14 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                                 a().target("_blank").classAttr("btn btn-primary btn-sm").href("tests/" + urlEncode(scenario.getScenarioName().replaceAll("\\s+", "-") + ".html")).text("Graph").end();
                                 a().classAttr("btn btn-primary btn-sm collapsed").href("#").attr("data-toggle", "collapse", "data-target", "#collapse" + index).text("Detail ▼").end();
                             end();
-                            div().classAttr("col-2");
+                            div().classAttr("col-2 p-0");
                                 if(scenario.isBuildFailed()) {
                                     text("N/A");
                                 } else {
                                     scenario.getExecutionsToDisplayInRow().forEach(execution -> {
-                                        div().classAttr("row");
-                                        div().classAttr("col " + getTextColorCss(execution)).text(execution.getFormattedRegression()).end();
-                                        div().classAttr("col " + getTextColorCss(execution)).text(execution.getFormattedConfidence()).end();
+                                        div().classAttr("row p-0");
+                                            div().classAttr("p-0 col " + getTextColorCss(execution)).text(execution.getDifferenceDisplay()).end();
+                                            div().classAttr("p-0 col " + getTextColorCss(execution)).text(execution.getFormattedConfidence()).end();
                                         end();
                                     });
                                 }
@@ -252,7 +258,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                             td().classAttr("text-muted").text("se: " + baseVersion.getStandardError().format()).end();
                             td().classAttr(baseVersion.getMedian().compareTo(currentVersion.getMedian()) >= 0 ? "text-success" : "text-danger").text(currentVersion.getMedian().format()).end();
                             td().classAttr("text-muted").text("se: " + currentVersion.getStandardError().format()).end();
-                            td().classAttr(getTextColorCss(execution)).text(execution.getFormattedRegression()).end();
+                            td().classAttr(getTextColorCss(execution)).text(execution.getFormattedDifferencePercentage()).end();
                             td().classAttr(getTextColorCss(execution)).text(execution.getFormattedConfidence()).end();
                         end();
                 });
