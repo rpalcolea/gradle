@@ -66,7 +66,7 @@ public class BuildSrcBuildListenerFactory {
         public void onConfigure(GradleInternal gradle) {
             final BuildableJavaComponent mainComponent = mainComponentOf(gradle);
             gradle.getStartParameter().setTaskNames(mainComponent.getBuildTasks());
-            ProjectState projectState = mainComponent.getProject().getMutationState();
+            ProjectState projectState = gradle.getRootProject().getMutationState();
             classpath = projectState.withMutableState(new Factory<Set<File>>() {
                 @Nullable
                 @Override
