@@ -137,7 +137,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                 div().classAttr("row alert alert-primary m-0");
                     div().classAttr("col p-0");
                         a().classAttr("btn btn-sm btn-outline-primary").attr("data-toggle", "tooltip").title("Go back to Perfomrance Coordinator Build")
-                            .href("https://builds.gradle.org/viewLog.html?buildId=" + System.getenv("BUILD_ID")).text("<-").end();
+                            .href("https://builds.gradle.org/viewLog.html?buildId=" + System.getenv("BUILD_ID")).target("_blank").text("<-").end();
                     end();
                     div().classAttr("col-9 p-0");
                         text("Scenarios (" + successCount + " successful");
@@ -194,8 +194,8 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                     div().id("heading" + index).classAttr("card-header");
                         div().classAttr("row align-items-center data-row").attr("scenario", String.valueOf(index));
                             div().classAttr("col").text(String.valueOf(index)).
-                                a().href("#scenario" + index).classAttr("section-sign").style("display:none").id("section-sign-" + index).text("§");
-                                    attr("data-toggle", "tooltip").title("Click to copy url of this scenario to clipboard");
+                                a().attr("data-toggle", "tooltip").classAttr("section-sign").title("Click to copy url of this scenario to clipboard").href("#scenario" + index).style("display:none")
+                                    .id("section-sign-" + index).text("§");
                                 end();
                             end();
                             div().classAttr("col-7");
