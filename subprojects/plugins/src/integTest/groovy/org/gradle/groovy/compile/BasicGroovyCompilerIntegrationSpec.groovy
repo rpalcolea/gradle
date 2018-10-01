@@ -134,7 +134,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
         buildFile << """
             compileGroovy {
-                options.compilerArgs << '-proc:none'
+                options.annotationProcessorPath = files()
             }
         """
 
@@ -280,7 +280,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
         buildFile << """
             compileGroovy {
-                options.compilerArgs << '-proc:none'
+                options.annotationProcessorPath = files()
             }
         """
 
