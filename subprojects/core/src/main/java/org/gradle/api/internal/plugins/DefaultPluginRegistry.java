@@ -16,8 +16,9 @@
 
 package org.gradle.api.internal.plugins;
 
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.guava.CaffeinatedGuava;
 import com.google.common.base.Optional;
-import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
@@ -47,8 +48,8 @@ public class DefaultPluginRegistry implements PluginRegistry {
         this.parent = parent;
         this.pluginInspector = pluginInspector;
         this.classLoaderScope = classLoaderScope;
-        this.classMappings = CacheBuilder.newBuilder().build(new PotentialPluginCacheLoader(pluginInspector));
-        this.idMappings = CacheBuilder.newBuilder().build(new CacheLoader<PluginIdLookupCacheKey, Optional<PluginImplementation<?>>>() {
+        this.classMappings = CaffeinatedGuava.build(Caffeine.newBuilder(), new PotentialPluginCacheLoader(pluginInspector));
+        this.idMappings = CaffeinatedGuava.build(Caffeine.newBuilder(), new CacheLoader<PluginIdLookupCacheKey, Optional<PluginImplementation<?>>>() {
             @Override
             public Optional<PluginImplementation<?>> load(@SuppressWarnings("NullableProblems") PluginIdLookupCacheKey key) throws Exception {
                 PluginId pluginId = key.getId();

@@ -61,6 +61,8 @@ dependencies {
     implementation libraries.nativePlatform.coordinates
     implementation libraries.commons_compress.coordinates
     implementation libraries.xmlApis.coordinates
+    implementation "com.github.ben-manes.caffeine:caffeine:2.6.2"
+    implementation "com.github.ben-manes.caffeine:guava:2.6.2"
 
     runtimeOnly project(":docs")
 

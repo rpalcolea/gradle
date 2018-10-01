@@ -24,7 +24,10 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
-class LoggingEvictionListener implements RemovalListener<Object, Object> {
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+class LoggingEvictionListener implements RemovalListener<Object, Object>, com.github.benmanes.caffeine.cache.RemovalListener {
     private static Logger logger = Logging.getLogger(LoggingEvictionListener.class);
     private static final String EVICTION_MITIGATION_MESSAGE = "\nPerformance may suffer from in-memory cache misses. Increase max heap size of Gradle build process to reduce cache misses.";
     volatile int evictionCounter;
@@ -46,6 +49,16 @@ class LoggingEvictionListener implements RemovalListener<Object, Object> {
     @Override
     public void onRemoval(RemovalNotification<Object, Object> notification) {
         if (notification.getCause() == RemovalCause.SIZE) {
+            if (evictionCounter % logInterval == 0) {
+                logger.log(LogLevel.INFO, "Cache entries evicted. In-memory cache of {}: Size{{}} MaxSize{{}}, {} {}", cacheId, cache.size(), maxSize, cache.stats(), EVICTION_MITIGATION_MESSAGE);
+            }
+            evictionCounter++;
+        }
+    }
+
+    @Override
+    public void onRemoval(@Nullable Object key, @Nullable Object value, @Nonnull com.github.benmanes.caffeine.cache.RemovalCause cause) {
+        if (cause == com.github.benmanes.caffeine.cache.RemovalCause.SIZE) {
             if (evictionCounter % logInterval == 0) {
                 logger.log(LogLevel.INFO, "Cache entries evicted. In-memory cache of {}: Size{{}} MaxSize{{}}, {} {}", cacheId, cache.size(), maxSize, cache.stats(), EVICTION_MITIGATION_MESSAGE);
             }

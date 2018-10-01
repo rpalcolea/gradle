@@ -16,8 +16,9 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.guava.CaffeinatedGuava;
 import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import org.gradle.api.Transformer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -85,8 +86,7 @@ public class InMemoryCacheDecoratorFactory {
 
     private Cache<Object, Object> createInMemoryCache(String cacheId, int maxSize) {
         LoggingEvictionListener evictionListener = new LoggingEvictionListener(cacheId, maxSize);
-        final CacheBuilder<Object, Object> cacheBuilder = CacheBuilder.newBuilder().maximumSize(maxSize).recordStats().removalListener(evictionListener);
-        Cache<Object, Object> inMemoryCache = cacheBuilder.build();
+        Cache<Object, Object> inMemoryCache = CaffeinatedGuava.build(Caffeine.newBuilder().maximumSize(maxSize).recordStats().removalListener(evictionListener));
         evictionListener.setCache(inMemoryCache);
         return inMemoryCache;
     }
