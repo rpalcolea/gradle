@@ -102,8 +102,8 @@ project.afterEvaluate {
 }
 
 dependencies {
-    compile 'org.jetbrains.kotlin:kotlin-stdlib:1.0.3'
-    compile 'org.jetbrains.anko:anko-common:0.9'
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib'
+    implementation 'org.jetbrains.anko:anko-common:0.9'
 
-    testCompile 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.12'
 }

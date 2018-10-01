@@ -70,7 +70,7 @@ abstract class AbstractSmokeTest extends Specification {
         static springBoot = "2.0.5.RELEASE"
 
         // https://developer.android.com/studio/releases/platform-tools
-        static androidTools = "28.0.1"
+        static androidTools = "28.0.3"
         // https://mvnrepository.com/artifact/com.android.tools.build/gradle?repo=google
         static androidGradle3x = "3.2.0"
         static androidGradle = Versions.of(androidGradle3x)
