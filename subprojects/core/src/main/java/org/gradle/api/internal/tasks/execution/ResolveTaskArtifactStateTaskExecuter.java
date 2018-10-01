@@ -57,14 +57,16 @@ public class ResolveTaskArtifactStateTaskExecuter implements TaskExecuter {
 
         context.setTaskArtifactState(taskArtifactState);
         outputs.setHistory(taskArtifactState.getExecutionHistory());
-        LOGGER.debug("Putting task artifact state for {} into context took {}.", task, clock.getElapsed());
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Putting task artifact state for {} into context took {}.", task, clock.getElapsed());
+        }
         try {
             executer.execute(task, state, context);
         } finally {
             outputs.setHistory(null);
             context.setTaskArtifactState(null);
             context.setTaskProperties(null);
-            LOGGER.debug("Removed task artifact state for {} from context.");
+            LOGGER.debug("Removed task artifact state for {} from context.", task);
         }
     }
 

@@ -16,9 +16,10 @@
 
 package org.gradle.internal.fingerprint.impl;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.MultimapBuilder;
+import com.google.common.collect.Ordering;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
@@ -27,7 +28,6 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -77,8 +77,8 @@ public class IgnoredPathCompareStrategy implements FingerprintCompareStrategy.Im
             }
         }
 
-        List<Map.Entry<HashCode, FilePathWithType>> unaccountedForPreviousEntries = Lists.newArrayList(unaccountedForPreviousFiles.entries());
-        Collections.sort(unaccountedForPreviousEntries, ENTRY_COMPARATOR);
+        ImmutableList<Map.Entry<HashCode, FilePathWithType>> unaccountedForPreviousEntries = Ordering.from(ENTRY_COMPARATOR).immutableSortedCopy(unaccountedForPreviousFiles.entries());
+
         for (Map.Entry<HashCode, FilePathWithType> unaccountedForPreviousEntry : unaccountedForPreviousEntries) {
             FilePathWithType removedFile = unaccountedForPreviousEntry.getValue();
             if (!visitor.visitChange(FileChange.removed(removedFile.getAbsolutePath(), propertyTitle, removedFile.getFileType()))) {

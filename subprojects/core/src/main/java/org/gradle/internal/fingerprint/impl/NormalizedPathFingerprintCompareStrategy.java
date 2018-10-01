@@ -17,15 +17,14 @@
 package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.MultimapBuilder;
+import com.google.common.collect.Ordering;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChangeVisitor;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.hash.Hasher;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -73,8 +72,8 @@ public class NormalizedPathFingerprintCompareStrategy implements FingerprintComp
                 previousFilesForFingerprint.remove(0);
             }
         }
-        List<Map.Entry<FileSystemLocationFingerprint, FilePathWithType>> unaccountedForPreviousEntries = Lists.newArrayList(unaccountedForPreviousFiles.entries());
-        Collections.sort(unaccountedForPreviousEntries, ENTRY_COMPARATOR);
+        List<Map.Entry<FileSystemLocationFingerprint, FilePathWithType>> unaccountedForPreviousEntries = Ordering.from(ENTRY_COMPARATOR).immutableSortedCopy(unaccountedForPreviousFiles.entries());
+        
         for (Map.Entry<FileSystemLocationFingerprint, FilePathWithType> unaccountedForPreviousFingerprintEntry : unaccountedForPreviousEntries) {
             FileSystemLocationFingerprint previousFingerprint = unaccountedForPreviousFingerprintEntry.getKey();
             String normalizedPath = previousFingerprint.getNormalizedPath();
@@ -109,8 +108,7 @@ public class NormalizedPathFingerprintCompareStrategy implements FingerprintComp
     }
 
     public static void appendSortedToHasher(Hasher hasher, Collection<FileSystemLocationFingerprint> fingerprints) {
-        List<FileSystemLocationFingerprint> sortedFingerprints = Lists.newArrayList(fingerprints);
-        Collections.sort(sortedFingerprints);
+        List<FileSystemLocationFingerprint> sortedFingerprints = Ordering.natural().immutableSortedCopy(fingerprints);
         for (FileSystemLocationFingerprint normalizedSnapshot : sortedFingerprints) {
             normalizedSnapshot.appendToHasher(hasher);
         }
