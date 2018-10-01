@@ -186,7 +186,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final Set<Object> excludeRules = new LinkedHashSet<Object>();
     private Set<ExcludeRule> parsedExcludeRules;
 
-    private final Object observationLock = new Object();
     private InternalState observedState = UNRESOLVED;
     private InternalState resolvedState = UNRESOLVED;
     private boolean insideBeforeResolve;
@@ -488,12 +487,31 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         markParentsObserved(requestedState);
     }
 
-    private void markThisObserved(InternalState requestedState) {
-        synchronized (observationLock) {
-            if (observedState.compareTo(requestedState) < 0) {
-                observedState = requestedState;
+    private <T> T withMutableProject(final Factory<T> factory) {
+        if (domainObjectContext.getProjectPath() != null) {
+            Project project = projectFinder.findProject(domainObjectContext.getProjectPath().getPath());
+            // Project should only be null if we are resolving a configuration in places where we are running single
+            // threaded anyways, like evaluating buildSrc or in an init script.
+            if (project != null) {
+                ProjectState projectState = projectStateRegistry.stateFor(project);
+                return projectState.withMutableState(factory);
             }
         }
+
+        return factory.create();
+    }
+
+    private void markThisObserved(final InternalState requestedState) {
+        // We grab the mutation lock here because other projects can reach across and call this method
+        // when they resolve configurations that extend from this configuration
+        withMutableProject(Factories.toFactory(new Runnable() {
+            @Override
+            public void run() {
+                if (observedState.compareTo(requestedState) < 0) {
+                    observedState = requestedState;
+                }
+            }
+        }));
     }
 
     private void markParentsObserved(InternalState requestedState) {
