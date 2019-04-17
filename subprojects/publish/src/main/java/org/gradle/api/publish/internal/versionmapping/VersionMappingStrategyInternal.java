@@ -21,4 +21,5 @@ import org.gradle.api.publish.VersionMappingStrategy;
 public interface VersionMappingStrategyInternal extends VersionMappingStrategy {
     void defaultResolutionConfiguration(String usage, String defaultConfiguration);
     VariantVersionMappingStrategyInternal findStrategyForVariant(ImmutableAttributes variantAttributes);
+    boolean usesVersionMapping();
 }

@@ -62,6 +62,11 @@ public class DefaultVariantVersionMappingStrategy implements VariantVersionMappi
         return null;
     }
 
+    @Override
+    public boolean usesPublishedVersions() {
+        return usePublishedVersions;
+    }
+
     public void setTargetConfiguration(Configuration target) {
         targetConfiguration = target;
     }

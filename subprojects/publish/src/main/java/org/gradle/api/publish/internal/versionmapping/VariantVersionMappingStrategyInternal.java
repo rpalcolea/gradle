@@ -19,4 +19,5 @@ import org.gradle.api.publish.VariantVersionMappingStrategy;
 
 public interface VariantVersionMappingStrategyInternal extends VariantVersionMappingStrategy {
     String maybeResolveVersion(String group, String module);
+    boolean usesPublishedVersions();
 }

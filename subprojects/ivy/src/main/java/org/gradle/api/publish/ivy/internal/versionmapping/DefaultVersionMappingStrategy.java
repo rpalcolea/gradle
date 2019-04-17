@@ -46,6 +46,7 @@ public class DefaultVersionMappingStrategy implements VersionMappingStrategyInte
     private final List<Action<? super VariantVersionMappingStrategy>> mappingsForAllVariants = Lists.newArrayListWithExpectedSize(2);
     private final Map<ImmutableAttributes, String> defaultConfigurations = Maps.newHashMap();
     private final Multimap<ImmutableAttributes, Action<? super VariantVersionMappingStrategy>> attributeBasedMappings = ArrayListMultimap.create();
+    private boolean versionMappingInUse = false;
 
     public DefaultVersionMappingStrategy(ObjectFactory objectFactory,
                                          ConfigurationContainer configurations,
@@ -60,11 +61,13 @@ public class DefaultVersionMappingStrategy implements VersionMappingStrategyInte
     @Override
     public void allVariants(Action<? super VariantVersionMappingStrategy> action) {
         mappingsForAllVariants.add(action);
+        versionMappingInUse = true;
     }
 
     @Override
     public <T> void variant(Attribute<T> attribute, T attributeValue, Action<? super VariantVersionMappingStrategy> action) {
         attributeBasedMappings.put(attributesFactory.of(attribute, attributeValue), action);
+        versionMappingInUse = true;
     }
 
     @Override
@@ -100,6 +103,11 @@ public class DefaultVersionMappingStrategy implements VersionMappingStrategyInte
             }
         }
         return strategy;
+    }
+
+    @Override
+    public boolean usesVersionMapping() {
+        return versionMappingInUse;
     }
 
     private DefaultVariantVersionMappingStrategy createDefaultMappingStrategy(ImmutableAttributes variantAttributes) {
