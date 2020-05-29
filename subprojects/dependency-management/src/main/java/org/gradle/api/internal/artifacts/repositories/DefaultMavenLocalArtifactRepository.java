@@ -128,4 +128,9 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
 
         }
     }
+
+    @Override
+    public boolean isLocalhost() {
+        return true;
+    }
 }

@@ -103,11 +103,11 @@ public class RepositoryTransportFactory {
         return new FileTransport(name, fileRepository, cachedExternalResourceIndex, temporaryFileProvider, timeProvider, artifactCacheLockingManager, producerGuard, checksumService);
     }
 
-    public RepositoryTransport createTransport(String scheme, String name, Collection<Authentication> authentications, HttpRedirectVerifier redirectVerifier) {
-        return createTransport(Collections.singleton(scheme), name, authentications, redirectVerifier);
+    public RepositoryTransport createTransport(String scheme, String name, Collection<Authentication> authentications, HttpRedirectVerifier redirectVerifier, boolean isLocalhost) {
+        return createTransport(Collections.singleton(scheme), name, authentications, redirectVerifier, isLocalhost);
     }
 
-    public RepositoryTransport createTransport(Set<String> schemes, String name, Collection<Authentication> authentications, HttpRedirectVerifier redirectVerifier) {
+    public RepositoryTransport createTransport(Set<String> schemes, String name, Collection<Authentication> authentications, HttpRedirectVerifier redirectVerifier, boolean isLocalhost) {
         validateSchemes(schemes);
 
         ResourceConnectorFactory connectorFactory = findConnectorFactory(schemes);
@@ -125,10 +125,14 @@ public class RepositoryTransportFactory {
         ResourceConnectorSpecification connectionDetails = new DefaultResourceConnectorSpecification(authentications, redirectVerifier);
 
         ExternalResourceConnector resourceConnector = connectorFactory.createResourceConnector(connectionDetails);
-        resourceConnector = startParameterResolutionOverride.overrideExternalResourceConnector(resourceConnector);
+        if(!isLocalhost) {
+            resourceConnector = startParameterResolutionOverride.overrideExternalResourceConnector(resourceConnector);
+        }
 
         ExternalResourceCachePolicy cachePolicy = new DefaultExternalResourceCachePolicy();
-        cachePolicy = startParameterResolutionOverride.overrideExternalResourceCachePolicy(cachePolicy);
+        if(!isLocalhost) {
+            cachePolicy = startParameterResolutionOverride.overrideExternalResourceCachePolicy(cachePolicy);
+        }
 
         return new ResourceConnectorRepositoryTransport(name, progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex, timeProvider, artifactCacheLockingManager, resourceConnector, buildOperationExecutor, cachePolicy, producerGuard, fileRepository, checksumService);
     }

@@ -18,7 +18,10 @@ package org.gradle.api.artifacts.repositories;
 
 import org.gradle.api.Incubating;
 
+import java.net.InetAddress;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.UnknownHostException;
 
 /**
  * A repository that supports resolving artifacts from a URL.
@@ -72,4 +75,23 @@ public interface UrlArtifactRepository {
      * @see #isAllowInsecureProtocol()
      */
     void setAllowInsecureProtocol(boolean allowInsecureProtocol);
+
+    /**
+     * Specifies whether it is a repository in local machine
+     *
+     * @since 6.6
+     */
+    @Incubating
+    default boolean isLocalhost() {
+        if(getUrl() == null) {
+            return false;
+        }
+        try {
+            String localAddress = InetAddress.getLocalHost().getHostAddress();
+            String requestAddress = InetAddress.getByName(getUrl().toURL().getHost()).getHostAddress();
+            return localAddress.equals(requestAddress) || requestAddress.equals("127.0.0.1");
+        } catch (UnknownHostException | MalformedURLException e) {
+            return false;
+        }
+    }
 }

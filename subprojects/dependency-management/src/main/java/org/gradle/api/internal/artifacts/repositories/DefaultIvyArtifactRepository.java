@@ -208,7 +208,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     }
 
     private IvyResolver createResolver(Set<String> schemes) {
-        return createResolver(transportFactory.createTransport(schemes, getName(), getConfiguredAuthentication(), urlArtifactRepository.createRedirectVerifier()));
+        return createResolver(transportFactory.createTransport(schemes, getName(), getConfiguredAuthentication(), urlArtifactRepository.createRedirectVerifier(), urlArtifactRepository.isLocalhost()));
     }
 
     private void validate(Set<String> schemes) {
