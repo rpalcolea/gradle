@@ -89,11 +89,13 @@ credentials {
         and:
         module.jar.expectPut()
         module.jar.sha1.expectPut()
+        module.jar.md5.expectPut()
         if (extraChecksums) {
             module.jar.sha256.expectPut()
             module.jar.sha512.expectPut()
         }
         module.ivy.expectPut(HttpStatus.CREATED_201)
+        module.ivy.md5.expectPut(HttpStatus.CREATED_201)
         module.ivy.sha1.expectPut(HttpStatus.CREATED_201)
         if (extraChecksums) {
             module.ivy.sha256.expectPut(HttpStatus.CREATED_201)
@@ -101,6 +103,7 @@ credentials {
         }
         module.moduleMetadata.expectPut()
         module.moduleMetadata.sha1.expectPut()
+        module.moduleMetadata.md5.expectPut()
         if (extraChecksums) {
             module.moduleMetadata.sha256.expectPut()
             module.moduleMetadata.sha512.expectPut()
@@ -150,14 +153,17 @@ credentials {
         when:
         module.artifact.expectPut()
         module.artifact.sha1.expectPut()
+        module.artifact.md5.expectPut()
         module.artifact.sha256.expectPutBroken()
         module.artifact.sha512.expectPutBroken()
         module.ivy.expectPut()
         module.ivy.sha1.expectPut()
+        module.ivy.md5.expectPut()
         module.ivy.sha256.expectPutBroken()
         module.ivy.sha512.expectPutBroken()
         module.moduleMetadata.expectPut()
         module.moduleMetadata.sha1.expectPut()
+        module.moduleMetadata.md5.expectPut()
         module.moduleMetadata.sha256.expectPutBroken()
         module.moduleMetadata.sha512.expectPutBroken()
 
@@ -200,14 +206,17 @@ credentials {
         server.authenticationScheme = authScheme
         module.jar.expectPut('testuser', 'password')
         module.jar.sha1.expectPut('testuser', 'password')
+        module.jar.md5.expectPut('testuser', 'password')
         module.jar.sha256.expectPut('testuser', 'password')
         module.jar.sha512.expectPut('testuser', 'password')
         module.ivy.expectPut('testuser', 'password')
         module.ivy.sha1.expectPut('testuser', 'password')
+        module.ivy.md5.expectPut('testuser', 'password')
         module.ivy.sha256.expectPut('testuser', 'password')
         module.ivy.sha512.expectPut('testuser', 'password')
         module.moduleMetadata.expectPut('testuser', 'password')
         module.moduleMetadata.sha1.expectPut('testuser', 'password')
+        module.moduleMetadata.md5.expectPut('testuser', 'password')
         module.moduleMetadata.sha256.expectPut('testuser', 'password')
         module.moduleMetadata.sha512.expectPut('testuser', 'password')
 
@@ -349,10 +358,12 @@ credentials {
         and:
         module.jar.expectPut()
         module.jar.sha1.expectPut()
+        module.jar.md5.expectPut()
         module.jar.sha256.expectPut()
         module.jar.sha512.expectPut()
         module.ivy.expectPut()
         module.ivy.sha1.expectPut()
+        module.ivy.md5.expectPut()
         module.ivy.sha256.expectPut()
         module.ivy.sha512.expectPut()
 
@@ -408,10 +419,12 @@ credentials {
         and:
         module.jar.expectPut('testuser', 'password')
         module.jar.sha1.expectPut('testuser', 'password')
+        module.jar.md5.expectPut('testuser', 'password')
         module.jar.sha256.expectPut('testuser', 'password')
         module.jar.sha512.expectPut('testuser', 'password')
         module.ivy.expectPut('testuser', 'password')
         module.ivy.sha1.expectPut('testuser', 'password')
+        module.ivy.md5.expectPut('testuser', 'password')
         module.ivy.sha256.expectPut('testuser', 'password')
         module.ivy.sha512.expectPut('testuser', 'password')
 
@@ -486,18 +499,21 @@ credentials {
         module.jar.expectPutBroken()
         module.jar.expectPut()
         module.jar.sha1.expectPut()
+        module.jar.md5.expectPut()
         module.jar.sha256.expectPut()
         module.jar.sha512.expectPut()
 
         module.ivy.expectPutBroken()
         module.ivy.expectPut(HttpStatus.CREATED_201)
         module.ivy.sha1.expectPut(HttpStatus.CREATED_201)
+        module.ivy.md5.expectPut(HttpStatus.CREATED_201)
         module.ivy.sha256.expectPut(HttpStatus.CREATED_201)
         module.ivy.sha512.expectPut(HttpStatus.CREATED_201)
 
         module.moduleMetadata.expectPutBroken()
         module.moduleMetadata.expectPut()
         module.moduleMetadata.sha1.expectPut()
+        module.moduleMetadata.md5.expectPut()
         module.moduleMetadata.sha256.expectPut()
         module.moduleMetadata.sha512.expectPut()
 
@@ -562,14 +578,17 @@ credentials {
 
         module.jar.expectPut(credentials)
         module.jar.sha1.expectPut(credentials)
+        module.jar.md5.expectPut(credentials)
         module.jar.sha256.expectPut(credentials)
         module.jar.sha512.expectPut(credentials)
         module.ivy.expectPut(credentials)
         module.ivy.sha1.expectPut(credentials)
+        module.ivy.md5.expectPut(credentials)
         module.ivy.sha256.expectPut(credentials)
         module.ivy.sha512.expectPut(credentials)
         module.moduleMetadata.expectPut(credentials)
         module.moduleMetadata.sha1.expectPut(credentials)
+        module.moduleMetadata.md5.expectPut(credentials)
         module.moduleMetadata.sha256.expectPut(credentials)
         module.moduleMetadata.sha512.expectPut(credentials)
 
