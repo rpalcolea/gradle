@@ -24,6 +24,7 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.JvmImplementation;
+import org.gradle.jvm.toolchain.install.JdkRemoteBinary;
 import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
 
 import javax.inject.Inject;
@@ -31,7 +32,7 @@ import java.io.File;
 import java.net.URI;
 import java.util.Optional;
 
-public class AdoptOpenJdkRemoteBinary {
+public class AdoptOpenJdkRemoteBinary implements JdkRemoteBinary {
 
     private final SystemInfo systemInfo;
     private final OperatingSystem operatingSystem;
@@ -46,6 +47,7 @@ public class AdoptOpenJdkRemoteBinary {
         rootUrl = providerFactory.gradleProperty("org.gradle.jvm.toolchain.install.adoptopenjdk.baseUri").forUseAtConfigurationTime();
     }
 
+    @Override
     public Optional<File> download(JavaToolchainSpec spec, File destinationFile) {
         if (!canProvideMatchingJdk(spec)) {
             return Optional.empty();
@@ -55,7 +57,7 @@ public class AdoptOpenJdkRemoteBinary {
         return Optional.of(destinationFile);
     }
 
-    private boolean canProvideMatchingJdk(JavaToolchainSpec spec) {
+    public boolean canProvideMatchingJdk(JavaToolchainSpec spec) {
         final boolean matchesLanguageVersion = getLanguageVersion(spec).canCompileOrRun(8);
         final DefaultJvmVendorSpec vendorSpec = (DefaultJvmVendorSpec) spec.getVendor().get();
         JvmVendor vendor = JvmVendor.fromString("adoptopenjdk");

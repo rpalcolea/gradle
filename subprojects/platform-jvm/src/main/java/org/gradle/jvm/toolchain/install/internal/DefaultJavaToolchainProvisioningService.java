@@ -25,11 +25,15 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
+import org.gradle.jvm.toolchain.install.JdkRemoteBinary;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 
@@ -46,15 +50,15 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
 
     }
 
-    private final AdoptOpenJdkRemoteBinary openJdkBinary;
+    private final List<JdkRemoteBinary> jdkRemoteBinaryList = new ArrayList<>();
     private final JdkCacheDirectory cacheDirProvider;
     private final Provider<Boolean> downloadEnabled;
     private final BuildOperationExecutor buildOperationExecutor;
     private static final Object PROVISIONING_PROCESS_LOCK = new Object();
 
     @Inject
-    public DefaultJavaToolchainProvisioningService(AdoptOpenJdkRemoteBinary openJdkBinary, JdkCacheDirectory cacheDirProvider, ProviderFactory factory, BuildOperationExecutor executor) {
-        this.openJdkBinary = openJdkBinary;
+    public DefaultJavaToolchainProvisioningService(ServiceRegistry serviceRegistry, JdkCacheDirectory cacheDirProvider, ProviderFactory factory, BuildOperationExecutor executor) {
+        this.jdkRemoteBinaryList.addAll(serviceRegistry.getAll(JdkRemoteBinary.class));
         this.cacheDirProvider = cacheDirProvider;
         this.downloadEnabled = factory.gradleProperty(AUTO_DOWNLOAD).forUseAtConfigurationTime().map(Boolean::parseBoolean);
         this.buildOperationExecutor = executor;
@@ -64,18 +68,24 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
         if (!isAutoDownloadEnabled()) {
             return Optional.empty();
         }
-        return provisionInstallation(spec);
+
+        JdkRemoteBinary jdkRemoteBinary = findJdkRemoteBinaryForJdkVendor(spec);
+        if(jdkRemoteBinary == null) {
+            return Optional.empty();
+        }
+
+        return provisionInstallation(spec, jdkRemoteBinary);
     }
 
-    private Optional<File> provisionInstallation(JavaToolchainSpec spec) {
+    private Optional<File> provisionInstallation(JavaToolchainSpec spec, JdkRemoteBinary jdkRemoteBinary) {
         synchronized (PROVISIONING_PROCESS_LOCK) {
-            String destinationFilename = openJdkBinary.toFilename(spec);
+            String destinationFilename = jdkRemoteBinary.toFilename(spec);
             File destinationFile = cacheDirProvider.getDownloadLocation(destinationFilename);
             final FileLock fileLock = cacheDirProvider.acquireWriteLock(destinationFile, "Downloading toolchain");
             try {
                 return wrapInOperation(
                     "Provisioning toolchain " + destinationFile.getName(),
-                    () -> provisionJdk(spec, destinationFile));
+                    () -> provisionJdk(spec, jdkRemoteBinary, destinationFile));
             } catch (Exception e) {
                 throw new MissingToolchainException(spec, e);
             } finally {
@@ -84,14 +94,19 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
         }
     }
 
-    private Optional<File> provisionJdk(JavaToolchainSpec spec, File destinationFile) {
+    private Optional<File> provisionJdk(JavaToolchainSpec spec, JdkRemoteBinary jdkRemoteBinary, File destinationFile) {
         final Optional<File> jdkArchive;
         if (destinationFile.exists()) {
             jdkArchive = Optional.of(destinationFile);
         } else {
-            jdkArchive = openJdkBinary.download(spec, destinationFile);
+            jdkArchive = jdkRemoteBinary.download(spec, destinationFile);
         }
         return wrapInOperation("Unpacking toolchain archive", () -> jdkArchive.map(cacheDirProvider::provisionFromArchive));
+    }
+
+    @Nullable
+    private JdkRemoteBinary findJdkRemoteBinaryForJdkVendor(JavaToolchainSpec javaToolchainSpec) {
+        return jdkRemoteBinaryList.stream().filter(jdkRemoteBinary -> jdkRemoteBinary.canProvideMatchingJdk(javaToolchainSpec)).findAny().orElse(null);
     }
 
     private boolean isAutoDownloadEnabled() {
