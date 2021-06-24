@@ -21,15 +21,13 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.file.temp.TemporaryFileProvider;
-import org.gradle.api.internal.project.IsolatedAntBuilder;
-import org.gradle.api.internal.tasks.AntGroovydoc;
+
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.provider.Property;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
@@ -38,6 +36,10 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.file.Deleter;
+import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.process.JavaForkOptions;
+import org.gradle.workers.WorkQueue;
+import org.gradle.workers.WorkerExecutor;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -71,8 +73,6 @@ public class Groovydoc extends SourceTask {
 
     private File destinationDir;
 
-    private AntGroovydoc antGroovydoc;
-
     private boolean use;
 
     private boolean noTimestamp = true;
@@ -93,8 +93,16 @@ public class Groovydoc extends SourceTask {
 
     boolean includePrivate;
 
+    private final Property<JavaLauncher> javaLauncher;
+
     public Groovydoc() {
         getLogging().captureStandardOutput(LogLevel.INFO);
+        this.javaLauncher = getProject().getObjects().property(JavaLauncher.class);
+    }
+
+    @Inject
+    public WorkerExecutor getWorkerExecutor() {
+        throw new UnsupportedOperationException();
     }
 
     @TaskAction
@@ -102,16 +110,40 @@ public class Groovydoc extends SourceTask {
         checkGroovyClasspathNonEmpty(getGroovyClasspath().getFiles());
         File destinationDir = getDestinationDir();
         try {
+            FileSystemOperations fsOperations = getServices().get(FileSystemOperations.class);
+            fsOperations.delete(spec -> spec.delete(getTemporaryDir()));
+            fsOperations.copy(spec -> spec.from(getSource()).into(getTemporaryDir()));
             getDeleter().ensureEmptyDirectory(destinationDir);
         } catch (IOException ex) {
             throw new UncheckedIOException(ex);
         }
-        getAntGroovydoc().execute(
-            getSource(), destinationDir, isUse(), isNoTimestamp(), isNoVersionStamp(),
-            getWindowTitle(), getDocTitle(), getHeader(), getFooter(), getPathToOverview(), isIncludePrivate(),
-            getLinks(), getGroovyClasspath(), getClasspath(),
-            getTemporaryDir(), getServices().get(FileSystemOperations.class)
-        );
+
+        WorkQueue queue = getWorkerExecutor().processIsolation(worker -> {
+            worker.getClasspath().from(getGroovyClasspath());
+
+            JavaForkOptions forkOptions = worker.getForkOptions();
+            if(javaLauncher.isPresent()) {
+                forkOptions.setExecutable(javaLauncher.get().getExecutablePath().getAsFile().getAbsolutePath());
+            }
+        });
+        queue.submit(GenerateGroovydoc.class, parameters -> {
+            parameters.getSources().from(getSource());
+            parameters.getDestinationDir().set(destinationDir);
+            parameters.getIsUse().set(isUse());
+            parameters.getIsNoTimestamp().set(isNoTimestamp());
+            parameters.getIsNoVersionStamp().set(isNoVersionStamp());
+            parameters.getIsNoVersionStamp().set(isNoVersionStamp());
+            parameters.getWindowTitle().set(getWindowTitle());
+            parameters.getDocTitle().set(getDocTitle());
+            parameters.getHeader().set(getHeader());
+            parameters.getFooter().set(getFooter());
+            parameters.getPathToOverview().set(getPathToOverview());
+            parameters.getIsIncludePrivate().set(isIncludePrivate());
+            parameters.getLinks().set(getLinks());
+            parameters.getGroovyClasspath().from(getGroovyClasspath());
+            parameters.getClasspath().from(getClasspath());
+            parameters.getTemporaryDir().set(getTemporaryDir());
+        });
     }
 
     @Nullable
@@ -187,20 +219,6 @@ public class Groovydoc extends SourceTask {
      */
     public void setClasspath(FileCollection classpath) {
         this.classpath = classpath;
-    }
-
-    @Internal
-    public AntGroovydoc getAntGroovydoc() {
-        if (antGroovydoc == null) {
-            IsolatedAntBuilder antBuilder = getServices().get(IsolatedAntBuilder.class);
-            TemporaryFileProvider temporaryFileProvider = getServices().get(TemporaryFileProvider.class);
-            antGroovydoc = new AntGroovydoc(antBuilder, temporaryFileProvider);
-        }
-        return antGroovydoc;
-    }
-
-    public void setAntGroovydoc(AntGroovydoc antGroovydoc) {
-        this.antGroovydoc = antGroovydoc;
     }
 
     /**
